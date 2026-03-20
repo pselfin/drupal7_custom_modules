@@ -1,0 +1,5 @@
+name = Token Bulk Editor
+description = Единая админка для массового редактирования кастомных токенов (модуль token_custom).
+core = 7.x
+package = Custom
+dependencies[] = token_custom

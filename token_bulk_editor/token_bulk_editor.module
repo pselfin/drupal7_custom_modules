@@ -1,0 +1,47 @@
+<?php
+
+/**
+ * @file
+ * Единая админка для массового редактирования кастомных токенов.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function token_bulk_editor_permission() {
+  return array(
+    'bulk edit custom tokens' => array(
+      'title' => t('Bulk edit custom tokens'),
+      'description' => t('Access the bulk token editor page.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function token_bulk_editor_menu() {
+  $items['admin/structure/token-custom/token-bulk-editor'] = array(
+    'title'            => 'Массовое редактирование',
+    'description'      => 'Редактируйте все кастомные токены в одном месте.',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('token_bulk_editor_form'),
+    'access arguments' => array('bulk edit custom tokens'),
+    'file'             => 'token_bulk_editor.admin.inc',
+    'type'             => MENU_LOCAL_TASK,
+    'weight'           => 10,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Делаем plain_text дефолтным форматом при создании нового токена.
+ */
+function token_bulk_editor_form_token_custom_edit_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_state['token_custom']['op'] === 'add') {
+    $form['content']['#format'] = 'plain_text';
+  }
+}
