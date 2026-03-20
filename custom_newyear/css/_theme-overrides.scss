@@ -1,0 +1,31 @@
+// Theme Overrides for Custom New Year Module
+// This file contains overrides and additional styling based on Drupal theme compatibility
+
+// If needed, override certain styles based on theme requirements
+// Example: Different positioning for specific themes
+
+// Example theme-specific adjustments
+.theme-seven {
+  .lightrope {
+    // Override styles for Bartik theme (Drupal 7 default)
+    z-index: 1000; // Lower z-index for better compatibility
+  }
+}
+
+.theme-garland {
+  .lightrope {
+    // Different styles for garland theme
+    margin: -10px 0 0 0; // Slightly different positioning
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .lightrope {
+    li {
+      width: 8px;
+      height: 20px;
+      margin: 15px;
+    }
+  }
+}

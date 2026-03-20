@@ -1,0 +1,7 @@
+; $Id$
+name = Custom New Year
+description = Adds Christmas lightrope decoration to the website
+core = 7.x
+version = "7.x-1.0"
+configure = admin/config/user-interface/custom-newyear
+files[] = custom_newyear.module

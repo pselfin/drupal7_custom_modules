@@ -1,0 +1,288 @@
+<?php
+/**
+ * @file
+ * Adds Christmas lightrope decoration to the website
+ *
+ * Includes block functionality via custom_newyear.block.inc
+ */
+
+// Include block implementation
+require_once dirname(__FILE__) . '/custom_newyear.block.inc';
+
+/**
+ * Implements hook_menu().
+ */
+function custom_newyear_menu() {
+  $items['admin/config/user-interface/custom-newyear'] = array(
+    'title' => 'Custom New Year Settings',
+    'description' => 'Configure Christmas lightrope settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('custom_newyear_admin_form'),
+    'access arguments' => array('administer custom newyear settings'),
+    'file' => 'custom_newyear.admin.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function custom_newyear_permission() {
+  return array(
+    'administer custom newyear settings' => array(
+      'title' => t('Administer custom newyear settings'),
+      'description' => t('Configure Christmas lightrope settings'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_init().
+ */
+function custom_newyear_init() {
+  // Check if lightrope is enabled
+  $lightrope_enabled = variable_get('custom_newyear_enabled', 0);
+  
+  if ($lightrope_enabled) {
+    $container = variable_get('custom_newyear_container', 'body');
+    
+    // Add CSS file from organized directory structure
+    drupal_add_css(drupal_get_path('module', 'custom_newyear') . '/css/lightrope.css', array(
+      'group' => CSS_THEME,
+      'weight' => 100,
+      'every_page' => TRUE,
+    ));
+  }
+  
+  // Check if snow effect is enabled
+  $snow_enabled = variable_get('custom_newyear_snow_enabled', 0);
+  
+  if ($snow_enabled) {
+    // Add dynamically generated JavaScript with custom settings
+    $custom_js = custom_newyear_get_snow_js();
+    drupal_add_js($custom_js, array(
+      'type' => 'inline',
+      'group' => JS_THEME,
+      'weight' => 100,
+      'every_page' => TRUE,
+    ));
+  }
+}
+
+/**
+ * Helper function to get lightrope HTML structure
+ */
+function _custom_newyear_get_lightrope_html() {
+  $html = '<ul class="lightrope">';
+  for ($i = 1; $i <= 40; $i++) {
+    $html .= '<li></li>';
+  }
+  $html .= '</ul>';
+  
+  return $html;
+}
+
+// CSS is now loaded from external file (custom_newyear.css) for better performance and maintainability.
+// Lightrope is now displayed via Drupal Block system for maximum flexibility.
+
+/**
+ * Generates custom JavaScript for snow effect based on admin settings.
+ */
+function custom_newyear_get_snow_js() {
+  // Get snow settings
+  $snow_enabled = variable_get('custom_newyear_snow_enabled', 0);
+  $snow_count = variable_get('custom_newyear_snow_count', 50);
+  $snow_size = variable_get('custom_newyear_snow_size', 40);
+  $snow_speed = variable_get('custom_newyear_snow_speed', 0.7);
+  
+  // Get colors (filter out empty values)
+  $color1 = variable_get('custom_newyear_snow_color_1', '#fff');
+  $color2 = variable_get('custom_newyear_snow_color_2', '');
+  $color3 = variable_get('custom_newyear_snow_color_3', '');
+  
+  $colors = array_filter(array($color1, $color2, $color3));
+  if (empty($colors)) {
+    $colors = array('#fff');
+  }
+  
+  // Create JavaScript array of colors
+  $js_colors = 'new Array("' . implode('", "', $colors) . '")';
+  
+  // Generate JavaScript code
+  $js = "
+    (function() {
+      'use strict';
+      
+      // Configuration from Drupal admin settings
+      var snowmax = {$snow_count};
+      var snowcolor = {$js_colors};
+      var snowtype = new Array('Times');
+      var snowletter = '*';
+      var sinkspeed = {$snow_speed};
+      var snowmaxsize = {$snow_size};
+      var snowminsize = Math.max(8, Math.floor({$snow_size} / 2));
+      var snowingzone = 1;
+      
+      // Internal variables
+      var snow = new Array();
+      var marginbottom;
+      var marginright;
+      var timer;
+      var i_snow = 0;
+      var x_mv = new Array();
+      var crds = new Array();
+      var lftrght = new Array();
+      var browserinfos = navigator.userAgent;
+      var ie5 = document.all && document.getElementById && !browserinfos.match(/Opera/);
+      var ns6 = document.getElementById && !document.all;
+      var opera = browserinfos.match(/Opera/);
+      var browserok = ie5 || ns6 || opera;
+      
+      function randommaker(range) {
+        var rand = Math.floor(range * Math.random());
+        return rand;
+      }
+      
+      function createSnowflakes() {
+        // Remove existing snowflakes first
+        for (var j = 0; j <= snowmax; j++) {
+          var existingFlake = document.getElementById('s' + j);
+          if (existingFlake && existingFlake.parentNode) {
+            existingFlake.parentNode.removeChild(existingFlake);
+          }
+        }
+        
+        // Create new snowflakes
+        for (var i = 0; i <= snowmax; i++) {
+          var snowflake = document.createElement('span');
+          snowflake.id = 's' + i;
+          snowflake.style.position = 'absolute';
+          snowflake.style.top = '-' + snowmaxsize + 'px';
+          snowflake.style.left = '-100px';
+          snowflake.style.pointerEvents = 'none';
+          snowflake.style.fontSize = '12px';
+          snowflake.style.zIndex = '1000';
+          snowflake.innerHTML = snowletter;
+          document.body.appendChild(snowflake);
+        }
+      }
+      
+      function initsnow() {
+        // Get real page height without artificial extension
+        marginbottom = document.documentElement.scrollHeight;
+        
+        if (window.innerWidth) {
+          marginright = window.innerWidth - 15;
+        } else {
+          marginright = document.documentElement.clientWidth - 15;
+        }
+        
+        var snowsizerange = snowmaxsize - snowminsize;
+        for (var i = 0; i <= snowmax; i++) {
+          crds[i] = 0;
+          lftrght[i] = Math.random() * 15;
+          x_mv[i] = 0.03 + Math.random() / 10;
+          
+          snow[i] = document.getElementById('s' + i);
+          if (!snow[i]) continue;
+          
+          snow[i].style.fontFamily = snowtype[randommaker(snowtype.length)];
+          snow[i].size = randommaker(snowsizerange) + snowminsize;
+          snow[i].style.fontSize = snow[i].size + 'px';
+          if (snowcolor.length > 0) {
+            snow[i].style.color = snowcolor[randommaker(snowcolor.length)];
+          } else {
+            snow[i].style.color = '#ffffff';
+          }
+          snow[i].style.zIndex = 1000;
+          snow[i].sink = sinkspeed * snow[i].size / 5;
+          
+          if (snowingzone == 1) {
+            snow[i].posx = randommaker(marginright - snow[i].size);
+          } else if (snowingzone == 2) {
+            snow[i].posx = randommaker(marginright / 2 - snow[i].size);
+          } else if (snowingzone == 3) {
+            snow[i].posx = randommaker(marginright / 2 - snow[i].size) + marginright / 4;
+          } else if (snowingzone == 4) {
+            snow[i].posx = randommaker(marginright / 2 - snow[i].size) + marginright / 2;
+          }
+          
+          snow[i].posy = randommaker(2 * marginbottom - marginbottom - 2 * snow[i].size);
+          snow[i].style.left = snow[i].posx + 'px';
+          snow[i].style.top = snow[i].posy + 'px';
+        }
+        movesnow();
+      }
+      
+      function movesnow() {
+        for (var i = 0; i <= snowmax; i++) {
+          if (!snow[i]) continue;
+          
+          crds[i] += x_mv[i];
+          snow[i].posy += snow[i].sink;
+          snow[i].style.left = snow[i].posx + lftrght[i] * Math.sin(crds[i]) + 'px';
+          snow[i].style.top = snow[i].posy + 'px';
+          
+          if (snow[i].posy >= marginbottom - 2 * snow[i].size || parseInt(snow[i].style.left) > (marginright - 3 * lftrght[i])) {
+            if (snowingzone == 1) {
+              snow[i].posx = randommaker(marginright - snow[i].size);
+            } else if (snowingzone == 2) {
+              snow[i].posx = randommaker(marginright / 2 - snow[i].size);
+            } else if (snowingzone == 3) {
+              snow[i].posx = randommaker(marginright / 2 - snow[i].size) + marginright / 4;
+            } else if (snowingzone == 4) {
+              snow[i].posx = randommaker(marginright / 2 - snow[i].size) + marginright / 2;
+            }
+            snow[i].posy = 0;
+          }
+        }
+        timer = setTimeout(function() { movesnow(); }, 50);
+      }
+      
+      // Initialize when DOM is ready
+      function startSnowEffect() {
+        createSnowflakes();
+        if (browserok) {
+          initsnow();
+        }
+      }
+      
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', startSnowEffect);
+      } else {
+        startSnowEffect();
+      }
+      
+      // Add resize listener to adapt to window size changes
+      window.addEventListener('resize', function() {
+        setTimeout(function() {
+          startSnowEffect();
+        }, 100);
+      });
+      
+    })();
+  ";
+  
+  return $js;
+}
+
+/**
+* Implements hook_uninstall().
+*/
+function custom_newyear_uninstall() {
+// Clean up all module variables
+variable_del('custom_newyear_enabled');
+variable_del('custom_newyear_snow_enabled');
+variable_del('custom_newyear_snow_count');
+variable_del('custom_newyear_snow_size');
+variable_del('custom_newyear_snow_speed');
+variable_del('custom_newyear_snow_color_1');
+variable_del('custom_newyear_snow_color_2');
+variable_del('custom_newyear_snow_color_3');
+variable_del('custom_newyear_background_color');
+variable_del('custom_newyear_margin_top');
+variable_del('custom_newyear_margin_bottom');
+variable_del('custom_newyear_custom_css');
+variable_del('custom_newyear_container');
+}

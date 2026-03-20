@@ -1,0 +1,53 @@
+// Custom New Year Module - Mixins
+// Common mixins for the lightrope component
+
+@mixin light-animation($duration: 2s) {
+  animation-fill-mode: both;
+  animation-iteration-count: infinite;
+  animation-duration: $duration;
+}
+
+@mixin light-positioning() {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: block;
+  width: $globe-width;
+  height: $globe-height;
+  border-radius: 50%;
+  margin: $globe-spacing/2;
+  display: inline-block;
+}
+
+@mixin light-wire() {
+  &:before {
+    content: "";
+    position: absolute;
+    background: $wire-color;
+    width: ($globe-width - 2);
+    height: $globe-height/3;
+    border-radius: 3px;
+    top: (0 - ($globe-height/6));
+    left: 1px;
+  }
+  
+  &:after {
+    content: "";
+    top: (0 - $globe-height/2);
+    left: $globe-width - 3;
+    position: absolute;
+    width: $globe-spacing + 12;
+    height: ($globe-height/3 * 2);
+    border-bottom: solid $wire-color 2px;
+    border-radius: 50%;
+  }
+  
+  &:last-child:after {
+    content: none;
+  }
+  
+  &:first-child {
+    margin-left: -$globe-spacing;
+  }
+}

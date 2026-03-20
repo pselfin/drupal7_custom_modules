@@ -1,0 +1,19 @@
+{
+  "name": "custom-newyear-css",
+  "version": "1.0.0",
+  "description": "SCSS build process for Custom New Year module",
+  "scripts": {
+    "build": "sass styles.scss lightrope.css --style compressed",
+    "dev": "sass styles.scss lightrope.css --watch --style expanded --source-map",
+    "build:uncompressed": "sass styles.scss lightrope.css --style expanded"
+  },
+  "devDependencies": {
+    "sass": "^1.69.0"
+  },
+  "keywords": [
+    "scss",
+    "css",
+    "drupal",
+    "custom-newyear"
+  ]
+}
