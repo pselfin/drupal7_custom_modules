@@ -1,0 +1,83 @@
+<?php
+
+/**
+ * @file
+ * Custom Cookies module. Cookie consent popup с настройками через админку.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function custom_cookies_menu() {
+  $items["admin/config/system/site-information/custom-coockies"] = array(
+    "title"            => "Cookie уведомление",
+    "description"      => "Настройка текста и внешнего вида cookie-уведомления.",
+    "page callback"    => "drupal_get_form",
+    "page arguments"   => array("custom_cookies_settings_form"),
+    "access arguments" => array("administer site configuration"),
+    "type"             => MENU_LOCAL_TASK,
+    "weight"           => 10,
+    "file"             => "custom_cookies.admin.inc",
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function custom_cookies_block_info() {
+  $blocks["cookie_consent"] = array(
+    "info"  => t("Cookie Consent Popup"),
+    "cache" => DRUPAL_NO_CACHE,
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function custom_cookies_block_view($delta = "") {
+  if ($delta !== "cookie_consent") {
+    return array();
+  }
+
+  $text       = variable_get("custom_cookies_text", "Продолжая пользоваться сайтом, вы соглашаетесь на обработку файлов cookie и других пользовательских данных в соответствии с <a href=\"[link]\" target=\"_blank\">[link_text]</a>. Заблокировать использование cookies сайтом можно в настройках браузера.");
+  $link       = variable_get("custom_cookies_link", "/privacy-policy");
+  $link_text  = variable_get("custom_cookies_link_text", "политикой конфиденциальности");
+  $btn_text   = variable_get("custom_cookies_button_text", "Понятно");
+  $btn_color  = variable_get("custom_cookies_button_color", "#5543bd");
+  $btn_border = variable_get("custom_cookies_button_border_color", "#3d3185");
+  $cookie_days = (int) variable_get("custom_cookies_cookie_days", 90);
+
+  $text = str_replace("[link]", check_plain($link), $text);
+  $text = str_replace("[link_text]", check_plain($link_text), $text);
+
+  $btn_style = "background-color:" . check_plain($btn_color) . ";border-color:" . check_plain($btn_border) . ";";
+
+  $js_settings = array(
+    "custom_cookies" => array(
+      "cookie_days" => $cookie_days,
+    ),
+  );
+
+  $block["subject"] = "";
+  $block["content"] = array(
+    "#markup" => "<div id=\"cookie_note\">"
+      . "<p>" . $text . "</p>"
+      . "<button class=\"cookie_accept\" style=\"" . $btn_style . "\">" . check_plain($btn_text) . "</button>"
+      . "</div>",
+    "#attached" => array(
+      "css" => array(
+        drupal_get_path("module", "custom_cookies") . "/custom_cookies.css",
+      ),
+      "js" => array(
+        drupal_get_path("module", "custom_cookies") . "/custom_cookies.js",
+        array("data" => $js_settings, "type" => "setting"),
+      ),
+    ),
+  );
+
+  return $block;
+}
